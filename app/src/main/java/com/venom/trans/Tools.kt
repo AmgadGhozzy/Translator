@@ -7,24 +7,28 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
-import android.speech.RecognizerIntent
 import android.widget.Toast
 
 class Tools {
 
+
     companion object {
-        fun speechToText(activity: Activity): String? {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(
-                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-                )
-                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something...")
-            }
-            val result = activity.startActivityForResult(intent, 123)
-            val data: Intent? = activity.intent
-            return data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-        }
+//        var spokenText: String = ""
+//        fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//            if (requestCode == 123 && resultCode == Activity.RESULT_OK) {
+//                data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { spoken ->
+//                    spokenText = spoken
+//                }
+//            }
+//        } //   intent  response  handler
+//        fun speechToText(activity: Activity) {
+//            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+//                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+//                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something...")
+//            }
+//            activity.startActivityForResult(intent, 123)
+//        }   //  Speech  To  Text
+//
 
         // Displays a toast message.
         fun showToast(context: Context, message: String?) {
@@ -79,6 +83,7 @@ class Tools {
                 }
         }
     }
+}
 
 //    import com.venom.trans.Tools
 //
@@ -109,5 +114,21 @@ class Tools {
 //    val imageUri: Uri = // Your image URI
 //    val imagePath = Tools.imageUriToPath(this, imageUri)
 
-}
+
+//private val speech: SpeechRecognizer by lazy { SpeechRecognizer.createSpeechRecognizer(this) }
+//
+//    if (SpeechRecognizer.isRecognitionAvailable(this)) {
+//        Toast.makeText(this, "Voice recognition available.", Toast.LENGTH_SHORT).show()
+//        val speechRecognizer = speech.setRecognitionListener(this)
+//
+//        val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+//            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
+//            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, applicationContext.packageName)
+//            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+//            }
+//        }
+//
+//        speechRecognizer.startListening(recognizerIntent)
 

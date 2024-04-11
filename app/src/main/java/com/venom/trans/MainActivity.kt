@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.speech.RecognizerIntent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -38,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var outputTextView: TextView
     lateinit var scrollView: ScrollView
     lateinit var imageView: ImageView
+    private var spokenText: String = ""
+
     var isDictionary: Boolean = true
     var isOcrOffline: Boolean = true
     var isDialog: Boolean = true
@@ -70,23 +73,28 @@ class MainActivity : AppCompatActivity() {
         val ocrButton = findViewById<Button>(R.id.ocrButton)
         textInputEditText.setText(intent.getStringExtra("LastText"))
 
-        textInputLayout.setStartIconOnLongClickListener {
-            Tools.speechToText(this)
-            true
-        }
+
         textInputLayout.setStartIconOnClickListener {
             textInputEditText.setText(
                 Tools.pasteFromClipboard(this)
             )
         }
 
+        textInputLayout.setStartIconOnLongClickListener {
+            speechToText()
+            textInputEditText.setText(spokenText)
+
+            true
+        }
+//        Tools.speechToText(this)
+//        textInputEditText.setText(Tools.spokenText)
+        translateButton.setOnLongClickListener {
+            speechToText()
+            textInputEditText.setText(spokenText)
+            true
+        }
         translateButton.setOnClickListener {
             translate()
-        }
-
-        translateButton.setOnLongClickListener {
-            Tools.speechToText(this)
-            true
         }
 
         fun openImagePicker() {
@@ -280,6 +288,38 @@ class MainActivity : AppCompatActivity() {
             translate(text, targetLang, translationCallback)
         }
     }   //  translate and dictionary
+
+
+//
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        Tools.onActivityResult(requestCode, resultCode, data)
+//    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 123 && resultCode == Activity.RESULT_OK) {
+            data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+                ?.let { spoken ->
+                    spokenText = spoken
+                    textInputEditText.setText(spokenText)
+                }
+        }
+    } //   intent  response  handler
+
+    private fun speechToText() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something...")
+        }
+        startActivityForResult(intent, 123)
+    }   //  Speech  To  Text
+
+
 
 
     private val pickImage =
