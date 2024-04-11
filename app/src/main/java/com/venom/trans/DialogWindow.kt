@@ -23,7 +23,7 @@ object DialogWindow {
         // Apply theme consistently
         val dialogTheme = if (sharedPreferences.getBoolean(
                 "light_theme",
-                false
+                true
             )
         ) R.style.Dialog_Light // Define a light theme style
         else R.style.Dialog_Dark // Define a dark theme style

@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         textInputLayout.setStartIconOnLongClickListener {
             speechToText()
             textInputEditText.setText(spokenText)
-
+            translate()
             true
         }
 //        Tools.speechToText(this)
@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         translateButton.setOnLongClickListener {
             speechToText()
             textInputEditText.setText(spokenText)
+            translate()
             true
         }
         translateButton.setOnClickListener {
@@ -102,9 +103,38 @@ class MainActivity : AppCompatActivity() {
             pickImage.launch(intent)
         }
 
-        ocrButton.setOnClickListener { openImagePicker() }
-        //ocrButton.setOnClickListener { requestPermission() }
+        //ocrButton.setOnClickListener { openImagePicker() }
+        fun requestPermission() {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_MEDIA_IMAGES
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                openImagePicker()
+                // Permission already granted
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
+                    1
+                )
+            }
+        } //  request  READ_MEDIA_IMAGES  permission
 
+        fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
+        ) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+            if (requestCode == 1 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openImagePicker()
+            } else {
+                Tools.showToast(this, "Permission denied to access external storage")
+            }
+        } //  handel requested permissions
+
+        ocrButton.setOnClickListener { requestPermission() }
 
         val sharedEditor = sharedPreference.edit()
         isDialog = sharedPreference.getBoolean("trans_in_dialog", true)
@@ -203,41 +233,10 @@ class MainActivity : AppCompatActivity() {
             }
         }  //  navigation bottom
 
-    private fun requestPermission() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_IMAGES
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            //openImagePicker()
-            // Permission already granted
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
-                1
-            )
-        }
-    } //  request  READ_MEDIA_IMAGES  permission
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            // selectImage()
-        } else {
-            Tools.showToast(this, "Permission denied to access external storage")
-        }
-    } //  handel requested permissions
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.popup_menu, menu)
         return true
     }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         when (id) {
@@ -267,7 +266,6 @@ class MainActivity : AppCompatActivity() {
         }
     }   // Tools bar
 
-
     private fun translate() {
         val targetLang =
             getResources().getStringArray(R.array.LangCodeArray)[findViewById<Spinner>(R.id.spinner_to_language).selectedItemPosition]
@@ -288,14 +286,6 @@ class MainActivity : AppCompatActivity() {
             translate(text, targetLang, translationCallback)
         }
     }   //  translate and dictionary
-
-
-//
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//        Tools.onActivityResult(requestCode, resultCode, data)
-//    }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -318,9 +308,6 @@ class MainActivity : AppCompatActivity() {
         }
         startActivityForResult(intent, 123)
     }   //  Speech  To  Text
-
-
-
 
     private val pickImage =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->

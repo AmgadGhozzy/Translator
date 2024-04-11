@@ -4,10 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityOptions
 import android.app.Application
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.text.Editable
@@ -47,6 +44,7 @@ import java.util.Locale
  * Fragment view for handling translations
  */
 class TranslateOffline : AppCompatActivity() {
+    var spokenText: String = ""
     lateinit var srcTextView: TextView
     private val navListener =
         BottomNavigationView.OnNavigationItemSelectedListener { item: MenuItem ->
@@ -109,12 +107,14 @@ class TranslateOffline : AppCompatActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setOnNavigationItemSelectedListener(navListener) // Set the Navigation as the action bar
         bottomNav.selectedItemId = R.id.navigation_offline
+
         textInputLayout.setStartIconOnLongClickListener {
             speechToText()
+            srcTextView.setText(spokenText)
             true
         }
         textInputLayout.setStartIconOnClickListener {
-            srcTextView.text = paste()
+            srcTextView.text = Tools.pasteFromClipboard(this)
         }
 
         // Get available language list and set up source and target language spinners
@@ -241,13 +241,14 @@ class TranslateOffline : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 123 && resultCode == Activity.RESULT_OK) {
             data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-                ?.let { spokenText ->
+                ?.let { spoken ->
+                    spokenText = spoken
                     srcTextView.setText(spokenText)
                 }
         }
     } //   intent  response  handler
 
-    fun speechToText() {
+    private fun speechToText() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(
                 RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -257,40 +258,6 @@ class TranslateOffline : AppCompatActivity() {
         }
         startActivityForResult(intent, 123)
     }   //  Speech  To  Text
-
-    fun showToast(message: String?) {
-        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
-    } //  show   Toast
-
-    fun copy(textToCopy: CharSequence) {
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("label", textToCopy))
-    } //CopyToClipboard
-
-    fun paste(): String? {
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        return if (clipboard.hasPrimaryClip()) {
-            showToast("Text pasted from clipboard")
-            clipboard.primaryClip!!.getItemAt(0).text.toString()
-        } else {
-            showToast("Clipboard is empty")
-            null
-        }
-    } //PasteFromClipboard
-
-    fun shareContent(text: String?, imageUri: Uri?, mimeType: String) {
-        val shareIntent = Intent(Intent.ACTION_SEND)
-        shareIntent.setType(mimeType)
-        if (text != null) {
-            shareIntent.putExtra(Intent.EXTRA_TEXT, text)
-        }
-        if (imageUri != null) {
-            shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        startActivity(Intent.createChooser(shareIntent, "Share"))
-    } //  Share  content
-
 
 }
 
