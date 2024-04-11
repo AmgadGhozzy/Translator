@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="50"
+                android:startColor="@color/Twit"
+                android:endColor="@color/Twit2"
+                android:type="linear" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+
+    <item
+        android:right="3dp"
+        android:drawable="@drawable/ic_arrow_drop_down"
+        android:gravity="start"></item>
+</layer-list>

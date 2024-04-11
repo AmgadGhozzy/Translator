@@ -1,0 +1,10 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/Twit2" /> <!-- Button color -->
+    <corners android:radius="18dp" /> <!-- Corner radius -->
+    <padding
+        android:left="12dp"
+        android:top="12dp"
+        android:right="12dp"
+        android:bottom="12dp" /> <!-- shadow -->
+    <size android:height="48dp" />
+</shape>

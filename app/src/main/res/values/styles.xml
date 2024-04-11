@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Dialog_Dark" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/line_bord_solid_dark</item>
+    </style>
+
+    <style name="Dialog_Light" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/line_bord_solid_light</item>
+    </style>
+
+    <style name="ButtonStyle" parent="Widget.Material3.Button">
+        <item name="android:background">@drawable/button_3d_background</item>
+        <item name="shapeAppearance">@drawable/button_3d_background</item>
+        <item name="background">@drawable/button_3d_background</item>
+        <item name="android:windowBackground">@drawable/button_3d_background</item>
+    </style>
+
+
+    <style name="PopupMenu" parent="Theme.AppCompat">
+        <item name="android:popupBackground">@drawable/grad_linear</item>
+        <item name="android:dropDownWidth">90dp</item>
+        <item name="android:dropDownVerticalOffset">2dp
+        </item> <!-- Adjust vertical offset for alignment -->
+        <item name="android:overlapAnchor">false</item> <!-- Ensure menu aligns with anchor -->
+        <item name="android:popupAnimationStyle">@style/SlideAnimation
+        </item> <!-- Custom animation -->
+    </style>
+
+
+    <style name="NavigateAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_in</item>
+        <item name="android:windowExitAnimation">@anim/slide_out</item>
+    </style>
+
+    <style name="SlideAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_down</item>
+        <item name="android:windowExitAnimation">@anim/slide_up</item>
+    </style>
+
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/Twit</item>
+        <item name="colorPrimaryDark">@color/Twit</item>
+        <item name="colorAccent">@color/Twit3</item>
+    </style>
+
+</resources>

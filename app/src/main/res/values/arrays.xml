@@ -1,0 +1,90 @@
+<resources>
+    <string-array name="LangArray">
+        <item>Arabic</item>
+        <item>English</item>
+        <item>French</item>
+        <item>German</item>
+        <item>Russian</item>
+        <item>Spanish</item>
+        <item>Chinese</item>
+        <item>Japanese</item>
+        <item>Korean</item>
+        <item>Italian</item>
+
+        <item>Dutch</item>
+        <item>Turkish</item>
+        <item>Swedish</item>
+        <item>Polish</item>
+        <item>Thai</item>
+        <item>Greek</item>
+        <item>Hindi</item>
+        <item>Bengali</item>
+        <item>Urdu</item>
+        <item>Tagalog</item>
+        <item>Hebrew</item>
+        <item>Czech</item>
+        <item>Slovak</item>
+        <item>Romanian</item>
+        <item>Malay</item>
+        <item>Finnish</item>
+        <item>Norwegian</item>
+        <item>Danish</item>
+        <item>Latvian</item>
+        <item>Estonian</item>
+        <item>Swahili</item>
+        <item>Armenian</item>
+        <item>Georgian</item>
+        <item>Basque</item>
+        <item>Catalan</item>
+    </string-array>
+
+    <string-array name="LangCodeArray">
+        <item>ar</item>
+        <item>en</item>
+        <item>fr</item>
+        <item>de</item>
+        <item>ru</item>
+        <item>es</item>
+        <item>zh</item>
+        <item>ja</item>
+        <item>ko</item>
+        <item>it</item>
+
+        <item>nl</item>
+        <item>tr</item>
+        <item>sv</item>
+        <item>pl</item>
+        <item>th</item>
+        <item>el</item>
+        <item>hi</item>
+        <item>bn</item>
+        <item>ur</item>
+        <item>tl</item>
+        <item>he</item>
+        <item>cs</item>
+        <item>sk</item>
+        <item>ro</item>
+        <item>ms</item>
+        <item>fi</item>
+        <item>no</item>
+        <item>da</item>
+        <item>lv</item>
+        <item>et</item>
+        <item>sw</item>
+        <item>hy</item>
+        <item>ka</item>
+        <item>eu</item>
+        <item>ca</item>
+    </string-array>
+
+    <!-- Reply Preference -->
+    <string-array name="reply_entries">
+        <item>Reply</item>
+        <item>Reply to all</item>
+    </string-array>
+
+    <string-array name="reply_values">
+        <item>reply</item>
+        <item>reply_all</item>
+    </string-array>
+</resources>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity1">
+
+    <include layout="@layout/bottom_navigation" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputText"
+        android:layout_width="325dp"
+        android:layout_height="70dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="16dp"
+        android:hint="@string/enter_translate"
+        android:inputType="textMultiLine"
+        app:boxCornerRadiusBottomEnd="18dp"
+        app:boxCornerRadiusBottomStart="18dp"
+        app:boxCornerRadiusTopEnd="18dp"
+        app:boxCornerRadiusTopStart="18dp"
+        app:endIconMode="clear_text"
+        app:hintTextColor="@color/Twit"
+        app:startIconDrawable="@drawable/translate_ic">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editInputText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:freezesText="true"
+            android:inputType="text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <ScrollView
+        android:id="@+id/scrollMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="110dp"
+        android:layout_below="@+id/spinner_to_language"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="50dp"
+        android:layout_marginEnd="5dp"
+        android:layout_toStartOf="@+id/translatedText">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceListItemSmall"
+            app:menu="@menu/popup_menu"
+            app:titleTextColor="@color/black" />
+
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/translatedText"
+        android:layout_width="288dp"
+        android:layout_height="90dp"
+        android:layout_below="@+id/inputText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="80dp"
+        android:background="@drawable/line_border"
+        android:freezesText="true"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp"
+        android:scrollbarAlwaysDrawHorizontalTrack="true"
+        android:scrollbarFadeDuration="700"
+        android:scrollbarSize="4dp"
+        android:scrollbarThumbVertical="@drawable/scrollbar_drawable"
+        android:scrollbars="vertical"
+        android:textSize="17sp" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/switch_dictionary"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ocrButton"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="32dp"
+        android:text="Meanings"
+        android:textSize="10sp" />
+
+    <Button
+        android:id="@+id/translateButton"
+        android:layout_width="128dp"
+        android:layout_height="60dp"
+        android:layout_below="@+id/translatedText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="160dp"
+        android:layout_marginBottom="20dp"
+        android:layout_toEndOf="@+id/switch_dictionary"
+        android:background="@drawable/button_3d_background"
+        android:elevation="40dp"
+        android:radius="50dp"
+        android:shadowRadius="20"
+        android:text="@string/translate"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/switch_ocr"
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/translateButton"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="10dp"
+        android:text="Offline OCR"
+        android:textSize="10sp" />
+
+    <Button
+        android:id="@+id/ocrButton"
+        android:layout_width="88dp"
+        android:layout_height="55dp"
+        android:layout_below="@+id/translateButton"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="180dp"
+        android:layout_toEndOf="@+id/switch_ocr"
+        android:background="@drawable/line_border"
+        android:elevation="4dp"
+        android:paddingStart="16dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="6dp"
+        android:text="OCR" />
+
+    <Spinner
+        android:id="@+id/spinner_to_language"
+        style="@style/PopupMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_toStartOf="@+id/inputText"
+        android:background="@drawable/spinner_bg_ic"
+        android:elevation="4dp"
+        android:entries="@array/LangArray"
+        android:minHeight="48dp"
+        android:padding="8dp"
+        android:spinnerMode="dropdown"
+        android:textColor="@color/black" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:layout_below="@+id/ocrButton"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/Twit" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_below="@+id/view"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="95dp"
+        android:background="@drawable/line_border"
+        android:paddingStart="5dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="5dp"
+        android:paddingBottom="5dp"
+        android:src="@drawable/translate_ic" />
+
+
+</RelativeLayout>
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="Twit">@color/Twit2</color>
+    <color name="Twit0">#1D9BF0</color>
+    <color name="Twit1">#1885F6</color>
+    <color name="Twit2">#2683F6</color>
+    <color name="Twit3">#3069FF</color>
+
+    <color name="TwitAlpha">#B32683F6</color>
+
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+</resources>

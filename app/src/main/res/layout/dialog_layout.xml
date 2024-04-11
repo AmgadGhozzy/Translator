@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="350dp"
+    android:gravity="center"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:padding="15dp">
+
+    <TextView
+        android:id="@+id/translatedDialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="350dp"
+        android:minHeight="100dp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:scrollbarAlwaysDrawHorizontalTrack="true"
+        android:scrollbarFadeDuration="700"
+        android:scrollbarSize="4dp"
+        android:scrollbarStyle="insideInset"
+        android:scrollbarThumbVertical="@drawable/scrollbar_drawable"
+        android:scrollbars="vertical"
+        android:textSize="20sp" />
+
+</LinearLayout>
+
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:gravity="bottom|center"-->
+    <!--        android:orientation="horizontal"-->
+    <!--        android:layout_marginTop="10dp">-->
+
+    <!--        <Button-->
+    <!--            android:id="@+id/button_share"-->
+    <!--            android:layout_width="0dp"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_weight="1"-->
+    <!--            android:text="Share"-->
+    <!--            android:layout_marginEnd="20dp"-->
+    <!--            android:background="@drawable/line_border"/>-->
+
+    <!--        <Button-->
+    <!--            android:id="@+id/button_copy"-->
+    <!--            android:layout_width="0dp"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_weight="1"-->
+    <!--            android:text="Copy"-->
+    <!--            android:layout_marginStart="20dp"-->
+    <!--            android:background="@drawable/line_border"/>-->
+    <!--    </LinearLayout>-->
