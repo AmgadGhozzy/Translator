@@ -4,14 +4,11 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityOptions
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.speech.RecognizerIntent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -23,7 +20,6 @@ import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -34,7 +30,6 @@ import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.venom.trans.DialogWindow.show
-
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
@@ -76,24 +71,21 @@ class MainActivity : AppCompatActivity() {
         textInputEditText.setText(intent.getStringExtra("LastText"))
 
         textInputLayout.setStartIconOnLongClickListener {
-            speechToText()
+            Tools.speechToText(this)
             true
         }
         textInputLayout.setStartIconOnClickListener {
-            paste()
+            textInputEditText.setText(
+                Tools.pasteFromClipboard(this)
+            )
         }
-        // Gets a list of all available translation languages.
-//            val availableLanguages: List<TranslateViewModel.Language> = TranslateLanguage.getAllLanguages().map {
-//                TranslateViewModel.Language(it)
-//            }
-//            textInputEditText.setText(
-//                availableLanguages.toString()
+
         translateButton.setOnClickListener {
             translate()
         }
 
         translateButton.setOnLongClickListener {
-            speechToText()
+            Tools.speechToText(this)
             true
         }
 
@@ -145,7 +137,8 @@ class MainActivity : AppCompatActivity() {
                                 Speech(this@MainActivity, outputTextView.getText().toString())
                             } else {
                                 // Swiped right
-                                copy(outputTextView.getText())
+                                Tools.copyToClipboard(applicationContext, outputTextView.getText())
+
                             }
                         }
                     }
@@ -160,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.navigation_home -> {
                     // Handle home action
-                    showToast("Home clicked")
+                    Tools.showToast(this, "Home clicked")
                     true
                 }
 
@@ -175,7 +168,7 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
                     startActivity(intent, options.toBundle())
-                    showToast("Offline clicked")
+                    Tools.showToast(this, "Offline clicked")
                     true
                 }
 
@@ -191,7 +184,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     startActivity(intent, options.toBundle())
 
-                    showToast("Setting clicked")
+                    Tools.showToast(this, "Setting clicked")
                     true
                 }
 
@@ -228,7 +221,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 1 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // selectImage()
         } else {
-            showToast("Permission denied to access external storage")
+            Tools.showToast(this, "Permission denied to access external storage")
         }
     } //  handel requested permissions
 
@@ -242,8 +235,8 @@ class MainActivity : AppCompatActivity() {
         when (id) {
             R.id.action_copy -> {
                 // Handle copy action
-                copy(outputTextView.getText())
-                showToast("Copy Done")
+                Tools.copyToClipboard(this, outputTextView.getText())
+                Tools.showToast(this, "Copy Done")
                 return true
             }
 
@@ -251,14 +244,14 @@ class MainActivity : AppCompatActivity() {
                 // Handle speak action
                 Speech.shutdown()
                 Speech(this@MainActivity, outputTextView.getText().toString())
-                showToast("Speak Done")
+                Tools.showToast(this, "Speak Done")
                 return true
             }
 
             R.id.action_share -> {
                 // Handle share action
-                shareContent(outputTextView.getText().toString(), null, "text/plain")
-                showToast("Share Done")
+                Tools.shareContent(this, outputTextView.getText().toString(), null, "text/*")
+                Tools.showToast(this, "Share Done")
                 return true
             }
 
@@ -266,71 +259,6 @@ class MainActivity : AppCompatActivity() {
         }
     }   // Tools bar
 
-
-    //  tools functions
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 123 && resultCode == Activity.RESULT_OK) {
-            data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-                ?.let { spokenText ->
-                    textInputEditText.setText(spokenText)
-                    translate()
-                }
-        }
-    } //   intent  response  handler
-
-    private fun speechToText() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something...")
-        }
-        startActivityForResult(intent, 123)
-    }   //  Speech  To  Text
-
-    private fun showToast(message: String?) {
-        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
-    } //  show   Toast
-
-    private fun copy(textToCopy: CharSequence) {
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("label", textToCopy))
-    } //CopyToClipboard
-
-    private fun paste(): String? {
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        return if (clipboard.hasPrimaryClip()) {
-            showToast("Text pasted from clipboard")
-            clipboard.primaryClip!!.getItemAt(0).text.toString()
-        } else {
-            showToast("Clipboard is empty")
-            null
-        }
-    } //PasteFromClipboard
-
-    private fun shareContent(text: String?, imageUri: Uri?, mimeType: String) {
-        val shareIntent = Intent(Intent.ACTION_SEND)
-        shareIntent.setType(mimeType)
-        if (text != null) {
-            shareIntent.putExtra(Intent.EXTRA_TEXT, text)
-        }
-        if (imageUri != null) {
-            shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        startActivity(Intent.createChooser(shareIntent, "Share"))
-    } //  Share  content
-
-
-    private fun imageUriToPath(imageUri: Uri): String? =
-        contentResolver.query(imageUri, arrayOf(MediaStore.Images.Media.DATA), null, null, null)
-            ?.use { cursor ->
-                cursor.moveToFirst().takeIf { it }?.let {
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
-                }
-            }   //  convert  image  Uri To  Path
 
     private fun translate() {
         val targetLang =
@@ -358,7 +286,7 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val imageUri: Uri? = result.data?.data
-                val picturePath = imageUri?.let { imageUriToPath(it) }
+                val picturePath = imageUri?.let { Tools.imageUriToPath(this, it) }
                 val ocrFunction: (String?) -> Unit = { ocrText ->
                     val textToShow = ocrText ?: "Failed to recognize text"
                     runOnUiThread {
