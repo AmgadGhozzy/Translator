@@ -14,5 +14,5 @@
     <item
         android:right="3dp"
         android:drawable="@drawable/ic_arrow_drop_down"
-        android:gravity="start"></item>
+        android:gravity="start" />
 </layer-list>

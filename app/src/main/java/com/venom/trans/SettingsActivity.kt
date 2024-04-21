@@ -50,7 +50,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 else -> {
-                    item.isChecked = true
+//                    item.isChecked = true
                     false
                 }
             }

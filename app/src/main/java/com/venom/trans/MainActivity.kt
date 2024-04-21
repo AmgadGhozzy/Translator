@@ -39,12 +39,11 @@ class MainActivity : AppCompatActivity() {
     lateinit var outputTextView: TextView
     lateinit var scrollView: ScrollView
     lateinit var imageView: ImageView
-    private var spokenText: String = ""
+    lateinit var spokenText: String
 
     var isDictionary: Boolean = true
     var isOcrOffline: Boolean = true
     var isDialog: Boolean = true
-
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setOnNavigationItemSelectedListener(navListener) // Set the Navigation as the action bar
+        bottomNav.selectedItemId = R.id.navigation_home
 
         textInputEditText = findViewById(R.id.editInputText)
         textInputLayout = findViewById(R.id.inputText)
@@ -97,6 +97,8 @@ class MainActivity : AppCompatActivity() {
         translateButton.setOnClickListener {
             translate()
         }
+
+
 
         fun openImagePicker() {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
@@ -227,7 +229,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 else -> {
-                    item.isChecked = true
+//                    item.isChecked = true
                     false
                 }
             }
@@ -237,6 +239,7 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.popup_menu, menu)
         return true
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         when (id) {
@@ -281,9 +284,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
         if (isDictionary) {
-            dictionary(text, targetLang, translationCallback)
+            //dictionary(text, targetLang, translationCallback)
         } else {
-            translate(text, targetLang, translationCallback)
+            //translate(text, targetLang, translationCallback)
         }
     }   //  translate and dictionary
 
@@ -314,14 +317,18 @@ class MainActivity : AppCompatActivity() {
             if (result.resultCode == Activity.RESULT_OK) {
                 val imageUri: Uri? = result.data?.data
                 val picturePath = imageUri?.let { Tools.imageUriToPath(this, it) }
+                imageView.setImageURI(imageUri)
                 val ocrFunction: (String?) -> Unit = { ocrText ->
                     val textToShow = ocrText ?: "Failed to recognize text"
                     runOnUiThread {
                         if (isDialog) show(textToShow, this) else outputTextView.text = textToShow
                     }
                 }
-                if (isOcrOffline) OcrMlkit().recognizeText(this, imageUri, ocrFunction)
-                else ocrRequest(picturePath, ocrFunction)
+                if (isOcrOffline) OcrMlkit().recognizeText(this, imageUri, imageView, ocrFunction)
+                //else ocrRequest(picturePath, ocrFunction)
             }
         }   //  pick    Image   and   OCR
 }
+
+
+

@@ -28,4 +28,10 @@
     <string name="download_model">Download Model</string>
     <string name="unknown_error">Unknown error occurred.</string>
     <string name="source_text_hint">Source text</string>
+    <string name="ocr">OCR</string>
+    <string name="offline_ocr">Offline OCR</string>
+    <string name="meanings">Meanings</string>
+    <string name="dialog_trans">Dialog Trans</string>
+    <string name="light_theme">Light Theme</string>
+    <string name="settings_options">Settings Options</string>
 </resources>
