@@ -2,98 +2,88 @@ package com.venom.trans
 
 import android.app.ActivityOptions
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.PreferenceManager.getDefaultSharedPreferences
+import androidx.preference.PreferenceManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.materialswitch.MaterialSwitch
+import com.venom.trans.databinding.ActivitySettingsBinding
 
-class SettingsActivity : AppCompatActivity() {
-    private val navListener =
-        BottomNavigationView.OnNavigationItemSelectedListener { item: MenuItem ->
-            when (item.itemId) {
-                R.id.navigation_home -> {
-                    // Handle home action
-                    val options =
-                        ActivityOptions.makeCustomAnimation(this, R.anim.slide_in, R.anim.slide_out)
-                    val intent = Intent(this, MainActivity::class.java).apply {
-                        putExtra(
-                            "LastText",
-                            intent.getStringExtra("LastText")
-                        )
-                    }
-                    startActivity(intent, options.toBundle())
+class SettingsActivity : AppCompatActivity(),
+    BottomNavigationView.OnNavigationItemSelectedListener {
 
-                    Toast.makeText(this, "Home clicked", Toast.LENGTH_SHORT).show()
-                    true
-                }
-
-                R.id.navigation_offline -> {
-                    // Handle Offline action
-                    val options =
-                        ActivityOptions.makeCustomAnimation(this, R.anim.slide_in, R.anim.slide_out)
-                    val intent = Intent(this, TranslateOffline::class.java)
-                    startActivity(intent, options.toBundle())
-
-                    Toast.makeText(this, "Offline clicked", Toast.LENGTH_SHORT).show()
-                    true
-                }
-
-                R.id.navigation_setting -> {
-                    // Handle setting action
-                    Toast.makeText(this, "Setting clicked", Toast.LENGTH_SHORT).show()
-                    true
-                }
-
-                else -> {
-//                    item.isChecked = true
-                    false
-                }
-            }
-        }
+    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val sharedPreferences = getDefaultSharedPreferences(this)
-        val isLightTheme = sharedPreferences.getBoolean("light_theme", true)
+        super.onCreate(savedInstanceState)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val isLightTheme = sharedPreferences.getBoolean("light_theme", false)
         setTheme(if (isLightTheme) R.style.AppTheme_Light else R.style.AppTheme_Dark)
 
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        setupThemeSwitch(sharedPreferences)
+        setupDialogSwitch(sharedPreferences)
 
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView.setOnNavigationItemSelectedListener(this)
+        bottomNavigationView.selectedItemId = R.id.navigation_setting
+    }
 
-        val sharedEditor = sharedPreferences.edit()
-        val themeButton = findViewById<Button>(R.id.ThemeButton)
-
-        val themeSwitch = findViewById<MaterialSwitch>(R.id.switch_theme)
-        themeSwitch.setChecked(isLightTheme)
-        themeSwitch.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
-            if (isChecked) {
-                // Update the shared preference value based on the state of the switch
-                sharedEditor.putBoolean("light_theme", true).apply()
-                recreate()
-            } else {
-                // Update the shared preference value based on the state of the switch
-                sharedEditor.putBoolean("light_theme", false).apply()
-                recreate()
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.navigation_home -> {
+                val options =
+                    ActivityOptions.makeCustomAnimation(this, R.anim.slide_in, R.anim.slide_out)
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    putExtra("LastText", intent.getStringExtra("LastText"))
+                }
+                startActivity(intent, options.toBundle())
+                Toast.makeText(this, "Home clicked", Toast.LENGTH_SHORT).show()
+                true
             }
+
+            R.id.navigation_offline -> {
+                val options =
+                    ActivityOptions.makeCustomAnimation(this, R.anim.slide_in, R.anim.slide_out)
+                val intent = Intent(this, TranslateOffline::class.java)
+                startActivity(intent, options.toBundle())
+                Toast.makeText(this, "Offline clicked", Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            R.id.navigation_setting -> {
+                Toast.makeText(this, "Setting clicked", Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            else -> false
         }
+    }
 
+    private fun setupThemeSwitch(sharedPreferences: SharedPreferences) {
+        val sharedEditor = sharedPreferences.edit()
+        val themeSwitch = binding.switchTheme
+        val isLightTheme = sharedPreferences.getBoolean("light_theme", false)
+        themeSwitch.isChecked = isLightTheme
 
-        val dialogSwitch = findViewById<MaterialSwitch>(R.id.switch_dialog)
+        themeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            sharedEditor.putBoolean("light_theme", isChecked).apply()
+            recreate() // Recreate activity to apply theme change
+        }
+    }
+
+    private fun setupDialogSwitch(sharedPreferences: SharedPreferences) {
+        val sharedEditor = sharedPreferences.edit()
+        val dialogSwitch = binding.switchDialog
         val isInDialog = sharedPreferences.getBoolean("trans_in_dialog", false)
-        dialogSwitch.setChecked(isInDialog)
-        dialogSwitch.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
+        dialogSwitch.isChecked = isInDialog
+
+        dialogSwitch.setOnCheckedChangeListener { _, isChecked ->
             sharedEditor.putBoolean("trans_in_dialog", isChecked).apply()
         }
-
-
-        val bottomNavigationView =
-            findViewById<BottomNavigationView>(R.id.bottom_navigation) // Initialize bottomNavigationView
-        bottomNavigationView.setOnNavigationItemSelectedListener(navListener) // Set the Navigation as the action bar
-        bottomNavigationView.selectedItemId = R.id.navigation_setting
     }
 }

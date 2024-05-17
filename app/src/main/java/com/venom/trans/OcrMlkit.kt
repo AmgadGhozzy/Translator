@@ -1,9 +1,9 @@
 package com.venom.trans
 
 import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
@@ -11,80 +11,84 @@ import android.graphics.Paint
 import android.net.Uri
 import android.view.MotionEvent
 import android.widget.ImageView
-import androidx.appcompat.app.AppCompatActivity
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.venom.trans.Tools.Companion.copyToClipboard
+import com.venom.trans.Tools.Companion.showToast
 
-class OcrMlkit : AppCompatActivity() {
-    fun recognizeText(
-        context: Context,
-        imageUri: Uri?,
-        imageView: ImageView,
-        callback: (String) -> Unit
-    ) {
+class OcrMlkit(
+    private val context: Context,
+    private val contentResolver: ContentResolver,
+    private val imageUri: Uri?,
+    private val imageView: ImageView
+) {
+
+    fun recognizeText(callback: (String?) -> Unit) {
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        if (imageUri != null) {
-            val inputImage = InputImage.fromFilePath(context, imageUri)
-            recognizer.process(inputImage)
+        imageUri?.let { uri ->
+            val inputImage = InputImage.fromFilePath(context, uri)
+            try {
+                recognizer.process(inputImage)
                 .addOnSuccessListener { visionText ->
-                    drawTextBlocksOnImage(imageView, visionText, imageUri)
-                    val recognizedText = StringBuilder()
-                    for (block in visionText.textBlocks) {
-                        for (line in block.lines) {
-                            recognizedText.append(line.text).append("\n")
-                        }
+                    drawTextBlocksOnImage(visionText)
+                    val recognizedText = visionText.textBlocks.flatMap { block ->
+                        block.lines.map { line -> line.text }
+                    }.joinToString("\n")
+                    callback(recognizedText)
+                }
+            } catch (e: Exception) {
+                callback(null)
+            }
+        }
+    }
+
+
+    private fun drawTextBlocksOnImage(visionText: Text?) {
+        val bitmapUtils = BitmapUtils(contentResolver)
+        val uriBitmap = imageUri?.let { bitmapUtils.getBitmapFromUri(it) }
+        val mutableBitmap = uriBitmap?.copy(Bitmap.Config.ARGB_8888, true)
+
+        mutableBitmap?.let { bitmap ->
+            visionText?.let {
+                val canvas = Canvas(bitmap)
+                val paint = Paint().apply {
+                    color = Color.parseColor(BOX_COLOR)
+                    style = Paint.Style.STROKE
+                    strokeWidth = TEXT_BOX_STROKE_WIDTH
+                }
+                for (block in visionText.textBlocks) {
+                    block.boundingBox?.let {
+                        canvas.drawRect(it, paint)
                     }
-                    callback(recognizedText.toString())
                 }
-                .addOnFailureListener { e ->
-                    e.printStackTrace()
-                    callback("")
-                }
-        } else {
-            callback("")
+                imageView.setImageBitmap(bitmap)
+                setupTouchHandling(visionText)
+            }
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun drawTextBlocksOnImage(imageView: ImageView, visionText: Text?, imageUri: Uri) {
-        val context = imageView.context
-        val bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(imageUri))
-        visionText?.let {
-            val mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-            val canvas = Canvas(mutableBitmap)
+    private fun setupTouchHandling(visionText: Text) {
 
-            val paint = Paint().apply {
-                color = Color.parseColor("#3069FF")
-                style = Paint.Style.STROKE
-                strokeWidth = 5.0f
-            }
-            for (block in visionText.textBlocks) {
-                block.boundingBox?.let {
-                    canvas.drawRect(it, paint)
+        val imageViewMatrix = imageView.imageMatrix
+        val imageMatrixValues = FloatArray(9)
+        imageViewMatrix.getValues(imageMatrixValues)
+        val scaleX = imageMatrixValues[Matrix.MSCALE_X]
+        val scaleY = imageMatrixValues[Matrix.MSCALE_Y]
+
+        imageView.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val x = ((event.x - imageMatrixValues[Matrix.MTRANS_X]) / scaleX).toInt()
+                val y = ((event.y - imageMatrixValues[Matrix.MTRANS_Y]) / scaleY).toInt()
+                recognizeTextFromSelectedArea(visionText, x, y)?.let { selectedText ->
+                    context.copyToClipboard(selectedText)
+                    context.showToast(selectedText)
                 }
+                imageView.performClick()
             }
-
-            val imageViewMatrix = imageView.imageMatrix
-            val imageMatrixValues = FloatArray(9)
-            imageViewMatrix.getValues(imageMatrixValues)
-            val scaleX = imageMatrixValues[Matrix.MSCALE_X]
-            val scaleY = imageMatrixValues[Matrix.MSCALE_Y]
-
-            imageView.setImageBitmap(mutableBitmap)
-            imageView.setOnTouchListener { _, event ->
-                if (event.action == MotionEvent.ACTION_DOWN) {
-                    val x = ((event.x - imageMatrixValues[Matrix.MTRANS_X]) / scaleX).toInt()
-                    val y = ((event.y - imageMatrixValues[Matrix.MTRANS_Y]) / scaleY).toInt()
-                    recognizeTextFromSelectedArea(visionText, x, y)?.let { selectedText ->
-                        Tools.copyToClipboard(context, selectedText)
-                        Tools.showToast(context, selectedText)
-                    }
-                    imageView.performClick()
-                }
-                false
-            }
+            false
         }
     }
 
@@ -94,7 +98,16 @@ class OcrMlkit : AppCompatActivity() {
             if (box != null && x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) {
                 return block.text
             }
+            if (box != null && x < box.left) {
+                return null
+            }
         }
         return null
+    }
+
+
+    companion object {
+        private const val TEXT_BOX_STROKE_WIDTH = 5.0f
+        private const val BOX_COLOR = "#3069FF"
     }
 }

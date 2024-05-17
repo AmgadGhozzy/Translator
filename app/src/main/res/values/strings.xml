@@ -34,4 +34,8 @@
     <string name="dialog_trans">Dialog Trans</string>
     <string name="light_theme">Light Theme</string>
     <string name="settings_options">Settings Options</string>
+    <string name="share">Share</string>
+    <string name="clipboard_empty_message">ClipBoard is Empty.</string>
+    <string name="providers">Providers</string>
+    <string name="speak_now">Speak Now ...</string>
 </resources>

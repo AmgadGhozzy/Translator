@@ -14,7 +14,7 @@ class NavigatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
-        setSupportActionBar(binding!!.toolbar) // Assuming you have a Toolbar with id 'toolbar' in your layout
+        setSupportActionBar(binding!!.toolsMenu) // Assuming you have a Toolbar with id 'toolbar' in your layout
         val navView = findViewById<BottomNavigationView>(R.id.nav_view)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top-level destinations.

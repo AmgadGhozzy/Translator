@@ -38,14 +38,17 @@ import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
+import com.venom.trans.Tools.Companion.pasteFromClipboard
+import com.venom.trans.Tools.Companion.setProgressText
 import java.util.Locale
 
 /**
  * Fragment view for handling translations
  */
 class TranslateOffline : AppCompatActivity() {
-    var spokenText: String = ""
-    lateinit var srcTextView: TextView
+    private var spokenText: String = ""
+    private lateinit var srcTextView: TextView
+    private var progressText = "Translating..."
     private val navListener =
         BottomNavigationView.OnNavigationItemSelectedListener { item: MenuItem ->
             when (item.itemId) {
@@ -59,14 +62,12 @@ class TranslateOffline : AppCompatActivity() {
                     Toast.makeText(this, "Home clicked", Toast.LENGTH_SHORT).show()
                     true
                 }
-
                 R.id.navigation_offline -> {
                     // Handle Offline action
                     item.isChecked = true
                     Toast.makeText(this, "Offline clicked", Toast.LENGTH_SHORT).show()
                     true
                 }
-
                 R.id.navigation_setting -> {
                     // Handle setting action
                     val options =
@@ -90,8 +91,9 @@ class TranslateOffline : AppCompatActivity() {
         val isLightTheme = PreferenceManager.getDefaultSharedPreferences(applicationContext)
             .getBoolean("light_theme", true)
         setTheme(if (isLightTheme) R.style.AppTheme_Light else R.style.AppTheme_Dark)
+
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.translate_offline)
+        setContentView(R.layout.activity_translate_offline)
 
         srcTextView = findViewById(R.id.sourceText)
         val targetSyncButton = findViewById<ToggleButton>(R.id.buttonSyncTarget)
@@ -110,11 +112,11 @@ class TranslateOffline : AppCompatActivity() {
 
         textInputLayout.setStartIconOnLongClickListener {
             speechToText()
-            srcTextView.setText(spokenText)
+            srcTextView.text = spokenText
             true
         }
         textInputLayout.setStartIconOnClickListener {
-            srcTextView.text = Tools.pasteFromClipboard(this)
+            srcTextView.text = this.pasteFromClipboard()
         }
 
         // Get available language list and set up source and target language spinners
@@ -134,7 +136,7 @@ class TranslateOffline : AppCompatActivity() {
                 position: Int,
                 id: Long,
             ) {
-                setProgressText(targetTextView) // Update targetTextView to show progress
+                targetTextView.setProgressText(progressText) // Update targetTextView to show progress
                 viewModel.sourceLang.value =
                     adapter.getItem(position) // Update source language in view model
             }
@@ -150,7 +152,7 @@ class TranslateOffline : AppCompatActivity() {
                 position: Int,
                 id: Long,
             ) {
-                setProgressText(targetTextView) // Update targetTextView to show progress
+                targetTextView.setProgressText(progressText) // Update targetTextView to show progress
                 viewModel.targetLang.value =
                     adapter.getItem(position) // Update target language in view model
             }
@@ -161,7 +163,7 @@ class TranslateOffline : AppCompatActivity() {
         }
         switchButton.setOnClickListener {
             val targetText = targetTextView.text.toString()
-            setProgressText(targetTextView) // Update targetTextView to show progress
+            targetTextView.setProgressText(progressText)
             val sourceLangPosition = sourceLangSelector.selectedItemPosition
             sourceLangSelector.setSelection(targetLangSelector.selectedItemPosition)
             targetLangSelector.setSelection(sourceLangPosition)
@@ -172,7 +174,7 @@ class TranslateOffline : AppCompatActivity() {
         }
 
         // Set up toggle buttons to delete or download remote models locally.
-        sourceSyncButton.setOnCheckedChangeListener { buttonView, isChecked ->
+        sourceSyncButton.setOnCheckedChangeListener { _, isChecked ->
             val language = adapter.getItem(sourceLangSelector.selectedItemPosition)
             if (isChecked) {
                 viewModel.downloadLanguage(language!!) // Download language model
@@ -194,7 +196,7 @@ class TranslateOffline : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
-                setProgressText(targetTextView) // Update targetTextView to show progress
+                targetTextView.setProgressText(progressText) // Update targetTextView to show progress
                 viewModel.sourceText.postValue(s.toString()) // Update source text in view model
             }
         })
@@ -267,14 +269,6 @@ class TranslateOffline : AppCompatActivity() {
  */
 class TranslateViewModel(application: Application) : AndroidViewModel(application) {
 
-    companion object {
-        // This specifies the number of translators instance we want to keep in our LRU cache.
-        // Each instance of the translator is built with different options based on the source
-        // language and the target language, and since we want to be able to manage the number of
-        // translator instances to keep around, an LRU cache is an easy way to achieve this.
-        private const val NUM_TRANSLATORS = 3
-    }
-
     // RemoteModelManager for managing remote translation models
     private val modelManager: RemoteModelManager = RemoteModelManager.getInstance()
 
@@ -282,8 +276,7 @@ class TranslateViewModel(application: Application) : AndroidViewModel(applicatio
     private val pendingDownloads: HashMap<String, Task<Void>> = hashMapOf()
 
     // LruCache to store Translator instances
-    private val translators =
-        object : LruCache<TranslatorOptions, Translator>(NUM_TRANSLATORS) {
+    private val translators = object : LruCache<TranslatorOptions, Translator>(2) {
             override fun create(options: TranslatorOptions): Translator {
                 return Translation.getClient(options)
             }
@@ -341,6 +334,33 @@ class TranslateViewModel(application: Application) : AndroidViewModel(applicatio
         fetchDownloadedModels()
     }
 
+    // Function to initiate translation
+    fun translate(): Task<String> {
+        val text = sourceText.value
+        val source = sourceLang.value
+        val target = targetLang.value
+        if (source == null || target == null || text.isNullOrEmpty()) {
+            return Tasks.forResult("")
+        }
+        val sourceLangCode = TranslateLanguage.fromLanguageTag(source.code)!!
+        val targetLangCode = TranslateLanguage.fromLanguageTag(target.code)!!
+        val options =
+            TranslatorOptions.Builder()
+                .setSourceLanguage(sourceLangCode)
+                .setTargetLanguage(targetLangCode)
+                .build()
+        return translators[options].downloadModelIfNeeded().continueWithTask { task ->
+            if (task.isSuccessful) {
+                translators[options].translate(text)
+            } else {
+                Tasks.forException(
+                    task.exception
+                        ?: Exception(getApplication<Application>().getString(R.string.unknown_error))
+                )
+            }
+        }
+    }
+
     // Function to get TranslateRemoteModel for a given language code
     private fun getModel(languageCode: String): TranslateRemoteModel {
         return TranslateRemoteModel.Builder(languageCode).build()
@@ -375,10 +395,7 @@ class TranslateViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     // Returns if a new model download task should be started.
-    fun requiresModelDownload(
-        lang: Language,
-        downloadedModels: List<String?>?,
-    ): Boolean {
+    fun requiresModelDownload(lang: Language, downloadedModels: List<String?>?): Boolean {
         return if (downloadedModels == null) {
             true
         } else !downloadedModels.contains(lang.code) && !pendingDownloads.containsKey(lang.code)
@@ -391,36 +408,6 @@ class TranslateViewModel(application: Application) : AndroidViewModel(applicatio
         pendingDownloads.remove(language.code)
     }
 
-    // Function to initiate translation
-    fun translate(): Task<String> {
-        val text = sourceText.value
-        val source = sourceLang.value
-        val target = targetLang.value
-        if (source == null || target == null || text.isNullOrEmpty()) {
-            return Tasks.forResult("")
-        }
-        val sourceLangCode = TranslateLanguage.fromLanguageTag(source.code)!!
-        val targetLangCode = TranslateLanguage.fromLanguageTag(target.code)!!
-        val options =
-            TranslatorOptions.Builder()
-                .setSourceLanguage(sourceLangCode)
-                .setTargetLanguage(targetLangCode)
-                .build()
-        return translators[options].downloadModelIfNeeded().continueWithTask { task ->
-            if (task.isSuccessful) {
-                translators[options].translate(text)
-            } else {
-                Tasks.forException(
-                    task.exception
-                        ?: Exception(getApplication<Application>().getString(R.string.unknown_error))
-                )
-            }
-        }
-    }
-
-    /** Holds the result of the translation or any error. */
-    inner class ResultOrError(var result: String?, var error: Exception?)
-
     /**
      * Holds the language code (i.e. "en") and the corresponding localized full language name (i.e.
      * "English")
@@ -428,8 +415,7 @@ class TranslateViewModel(application: Application) : AndroidViewModel(applicatio
     class Language(val code: String) : Comparable<Language> {
 
         // Function to get localized language name
-        private val displayName: String
-            get() = Locale(code).displayName
+        private val displayName: String get() = Locale(code).displayName
 
         override fun equals(other: Any?): Boolean {
             if (other === this) {
@@ -456,6 +442,9 @@ class TranslateViewModel(application: Application) : AndroidViewModel(applicatio
             return code.hashCode()
         }
     }
+
+    /** Holds the result of the translation or any error. */
+    inner class ResultOrError(var result: String?, var error: Exception?)
 
     override fun onCleared() {
         super.onCleared()

@@ -14,12 +14,12 @@
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputText"
         android:layout_width="0dp"
-        android:layout_height="68dp"
+        android:layout_height="wrap_content"
+        android:minHeight="68dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="10dp"
         android:hint="@string/enter_translate"
-        android:inputType="textMultiLine"
         app:boxCornerRadiusBottomEnd="18dp"
         app:boxCornerRadiusBottomStart="18dp"
         app:boxCornerRadiusTopEnd="18dp"
@@ -27,21 +27,23 @@
         app:endIconMode="clear_text"
         app:hintTextColor="@color/Twit"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/spinner_to_language"
+        app:layout_constraintStart_toEndOf="@+id/languageSpinner"
         app:layout_constraintTop_toTopOf="parent"
         app:startIconDrawable="@drawable/translate_ic">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editInputText"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="68dp"
+            android:maxLines="2"
             android:inputType="text" />
 
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <Spinner
-        android:id="@+id/spinner_to_language"
+        android:id="@+id/languageSpinner"
         style="@style/PopupMenu"
         android:layout_width="103dp"
         android:layout_height="50dp"
@@ -60,18 +62,18 @@
         android:id="@+id/scrollMenu"
         android:layout_width="80dp"
         android:layout_height="100dp"
-        android:layout_below="@+id/spinner_to_language"
+        android:layout_below="@+id/languageSpinner"
         android:layout_marginStart="-15dp"
         android:layout_marginTop="25dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/inputText">
 
         <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+            android:id="@+id/toolsMenu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItemSmall"
-            app:menu="@menu/popup_menu"
+            app:menu="@menu/tools_menu"
             app:titleTextColor="@color/black" />
     </ScrollView>
 
@@ -79,6 +81,7 @@
         android:id="@+id/translatedText"
         android:layout_width="0dp"
         android:layout_height="90dp"
+        android:maxLines="3"
         android:layout_marginStart="5dp"
         android:layout_marginTop="15dp"
         android:layout_marginEnd="70dp"
@@ -90,13 +93,13 @@
         app:layout_constraintTop_toBottomOf="@id/inputText" />
 
     <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/switch_dictionary"
+        android:id="@+id/dictionarySwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:layout_marginEnd="10dp"
         android:text="@string/meanings"
-        android:textSize="10sp"
+        android:textSize="11sp"
         app:layout_constraintBottom_toTopOf="@id/ocrButton"
         app:layout_constraintEnd_toStartOf="@+id/translateButton"
         app:layout_constraintTop_toBottomOf="@id/translatedText" />
@@ -115,14 +118,44 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/translatedText" />
 
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/transProvidersSpinner"
+        app:boxBackgroundColor="@android:color/transparent"
+        app:boxBackgroundMode="outline"
+        app:boxCornerRadiusBottomEnd="16dp"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
+        app:boxCornerRadiusTopStart="16dp"
+        app:hintTextColor="@color/Twit"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.98"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/translatedText">
+
+        <AutoCompleteTextView
+            android:id="@+id/transProvidersAutoComplete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/providers"
+            android:inputType="none"
+            android:padding="10dp" />
+
+
+    </com.google.android.material.textfield.TextInputLayout>
+
     <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/switch_ocr"
+        android:id="@+id/switchOcr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:layout_marginEnd="30dp"
         android:text="@string/offline_ocr"
-        android:textSize="10sp"
+        android:textSize="11sp"
         app:layout_constraintEnd_toStartOf="@+id/ocrButton"
         app:layout_constraintTop_toBottomOf="@id/translateButton" />
 
@@ -154,17 +187,36 @@
         android:id="@+id/imageView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="15dp"
         android:layout_marginStart="20dp"
+        android:layout_marginTop="15dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="90dp"
-        android:padding="5dp"
         android:background="@drawable/line_border"
+        android:padding="5dp"
         android:src="@drawable/translate_ic"
         app:layout_constraintBottom_toBottomOf="@+id/include2"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view" />
+        app:layout_constraintTop_toBottomOf="@+id/view"
+        app:layout_constraintVertical_bias="0.0" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_cancel"
+        android:visibility="gone"
+        app:backgroundTint="@android:color/transparent"
+        app:fabSize="normal"
+        app:layout_anchor="@id/imageView"
+        app:layout_anchorGravity="bottom|end"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="@id/imageView"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@id/imageView"
+        app:layout_constraintVertical_bias="0.01"
+        app:tint="@color/Twit" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

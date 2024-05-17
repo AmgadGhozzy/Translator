@@ -16,4 +16,10 @@
         android:icon="@drawable/ic_share"
         android:title="Share"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_expand"
+        android:icon="@drawable/ic_expand"
+        android:title="Expand"
+        app:showAsAction="never" />
+
 </menu>

@@ -13,14 +13,15 @@
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
         android:layout_margin="8dp"
-        android:inputType="textMultiLine"
         app:boxCornerRadiusBottomEnd="18dp"
         app:boxCornerRadiusBottomStart="18dp"
         app:boxCornerRadiusTopEnd="18dp"
         app:boxCornerRadiusTopStart="18dp"
         app:endIconMode="clear_text"
+        android:hint="@string/enter_translate"
         app:hintTextColor="@color/Twit"
         app:startIconDrawable="@drawable/translate_ic"
         app:layout_constraintBottom_toTopOf="@+id/sourceLangSelector"
@@ -31,11 +32,10 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/sourceText"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="top"
+            android:layout_height="wrap_content"
+            android:minHeight="80dp"
             android:freezesText="true"
-            android:inputType="text"
-            android:hint="@string/enter_translate" />
+            android:maxLines="6" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Spinner

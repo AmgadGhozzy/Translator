@@ -5,130 +5,248 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
+import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
+import android.util.Log
+import android.view.LayoutInflater
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import java.util.Locale
 
+/**
+ * Provides utility methods commonly used in Android development.
+ */
 class Tools {
-
-
     companion object {
-//        var spokenText: String = ""
-//        fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//            if (requestCode == 123 && resultCode == Activity.RESULT_OK) {
-//                data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { spoken ->
-//                    spokenText = spoken
-//                }
-//            }
-//        } //   intent  response  handler
-//        fun speechToText(activity: Activity) {
-//            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-//                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-//                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something...")
-//            }
-//            activity.startActivityForResult(intent, 123)
-//        }   //  Speech  To  Text
-//
-
         // Displays a toast message.
-        fun showToast(context: Context, message: String?) {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        fun Context.showToast(message: String?) {
+            message?.let { Toast.makeText(this, it, Toast.LENGTH_SHORT).show() }
+        }
+
+        // Sets progress text for a TextView.
+        fun TextView.setProgressText(progressText: String) {
+            text = progressText
+        }
+
+        // Gets selected or all text from a TextView.
+        fun TextView.getSelectedOrAllText(): String {
+            return if (isFocused && selectionStart != selectionEnd) {
+                text.subSequence(selectionStart, selectionEnd).toString()
+            } else {
+                text.toString()
+            }
         }
 
         // Copies text to the clipboard.
-        fun copyToClipboard(context: Context, textToCopy: CharSequence) {
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboard.setPrimaryClip(ClipData.newPlainText("label", textToCopy))
+        fun Context.copyToClipboard(textToCopy: CharSequence) {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("Translator", textToCopy))
         }
 
         // Pastes text from the clipboard.
-        fun pasteFromClipboard(context: Context): String? {
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            return if (clipboard.hasPrimaryClip()) {
-                showToast(context, "Text pasted from clipboard")
-                clipboard.primaryClip!!.getItemAt(0).text.toString()
-            } else {
-                showToast(context, "Clipboard is empty")
-                null
+        fun Context.pasteFromClipboard(): String? {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            return clipboard.primaryClip?.getItemAt(0)?.text?.toString().also {
+                if (it.isNullOrEmpty()) {
+                    showToast(getString(R.string.clipboard_empty_message))
+                }
             }
         }
 
         // Shares content.
-        fun shareContent(activity: Activity, text: String?, imageUri: Uri?, mimeType: String) {
-            val shareIntent = Intent(Intent.ACTION_SEND)
-            shareIntent.type = mimeType
-            if (text != null) {
-                shareIntent.putExtra(Intent.EXTRA_TEXT, text)
+        fun Activity.shareContent(
+            text: String? = null,
+            imageUri: Uri? = null,
+            mimeType: String = "text/plain"
+        ) {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = mimeType
+                text?.let { putExtra(Intent.EXTRA_TEXT, it) }
+                imageUri?.let {
+                    putExtra(Intent.EXTRA_STREAM, it)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
             }
-            if (imageUri != null) {
-                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri)
-                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            activity.startActivity(Intent.createChooser(shareIntent, "Share"))
+            startActivity(Intent.createChooser(shareIntent, "Share"))
         }
 
         // Converts image URI to its corresponding file path.
-        fun imageUriToPath(context: Context, imageUri: Uri): String? {
-            return context.contentResolver.query(
-                imageUri,
-                arrayOf(MediaStore.Images.Media.DATA),
-                null,
-                null,
-                null
-            )
-                ?.use { cursor ->
-                    cursor.moveToFirst().takeIf { it }?.let {
+        fun imageUriToPath(context: Context, imageUri: Uri?): String? {
+            return try {
+                imageUri?.let { uri ->
+                    context.contentResolver.query(
+                        uri,
+                        arrayOf(MediaStore.Images.Media.DATA),
+                        null,
+                        null,
+                        null
+                    )?.use { cursor ->
+                        cursor.moveToFirst()
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
                     }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+
+        // Opens the app settings page.
+        fun Context.openAppSettings() {
+            val intent = Intent().apply {
+                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                data = Uri.fromParts("package", packageName, null)
+            }
+            startActivity(intent)
+        }
+
+        // Converts speech to text.
+        fun speakToText(context: Context, onTextRecognized: (String) -> Unit) {
+            val speechRecognizer: SpeechRecognizer =
+                SpeechRecognizer.createSpeechRecognizer(context)
+
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                )
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_SECURE, true)
+                putExtra(
+                    RecognizerIntent.EXTRA_MAX_RESULTS,
+                    1
+                ) // Set max results to 1 for simplicity
+            }
+
+            // Log: Ready for speech recognition
+            Log.d("SpeechManager", "Ready for speech recognition")
+
+            speechRecognizer.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle) {
+                    AlertDialog.Builder(context)
+                        .setView(LayoutInflater.from(context).inflate(R.layout.speakdialog, null))
+                        .create()
+                        .apply {
+                            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                            show()
+                        }
+                }
+
+                override fun onBeginningOfSpeech() {
+                    // Log: Speech recognition started
+                    Log.d("SpeechManager", "Speech recognition started")
+                }
+
+                override fun onBufferReceived(buffer: ByteArray) {}
+
+                override fun onEndOfSpeech() {
+                    // Log: Speech recognition ended
+                    Log.d("SpeechManager", "Speech recognition ended")
+                }
+
+                override fun onEvent(eventType: Int, params: Bundle) {}
+
+                override fun onPartialResults(partialResults: Bundle) {}
+
+                override fun onRmsChanged(rmsdB: Float) {}
+
+                override fun onError(error: Int) {
+                    // Log: Speech recognition error
+                    Log.e("SpeechManager", "Speech recognition error: $error")
+                    // Handle recognition errors, if any
+                }
+
+                override fun onResults(results: Bundle) {
+                    val recognizedText =
+                        results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                            ?.firstOrNull()
+                    recognizedText?.let {
+                        // Log: Speech recognized
+                        Log.d("SpeechManager", "Speech recognized: $it")
+                        onTextRecognized(it)
+                    }
+                }
+            })
+
+            // Log: Starting speech recognition
+            Log.d("SpeechManager", "Starting speech recognition")
+            speechRecognizer.startListening(intent)
+        }
+
+    }
+
+    object SpeechManager {
+
+        private var textToSpeech: TextToSpeech? = null
+        private var initializeCallback: ((Boolean) -> Unit)? = null
+
+        fun initialize(context: Context, callback: (Boolean) -> Unit) {
+            // Store the callback to be invoked later
+            initializeCallback = callback
+
+            // Initialize the TextToSpeech engine
+            textToSpeech = TextToSpeech(context) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    initializeCallback?.invoke(true)
+                } else {
+                    initializeCallback?.invoke(false)
+                    Log.e("SpeechManager", "TextToSpeech initialization failed")
+                }
+            }
+        }
+
+        fun textToSpeak(text: String) {
+            textToSpeech?.setLanguage(Locale.getDefault())
+            textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+
+        fun shutdown() {
+            textToSpeech?.stop()
+            textToSpeech?.shutdown()
+            textToSpeech = null
         }
     }
 }
 
-//    import com.venom.trans.Tools
+//    // Display a toast message.
+//    context.showToast("Hello, world!")
 //
-//      // Example of calling the onActivityResult method
-//   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//      super.onActivityResult(requestCode, resultCode, data)
-//      Tools.onActivityResult(this, requestCode, resultCode, data, textInputEditText)
-//}
-//      // Example of calling the speechToText method
-//    Tools.speechToText(this)
+//// Set progress text for a TextView.
+//    textView.setProgressText("Loading...")
 //
-//      // Example of calling the showToast method
-//    Tools.showToast(this, "Your message")
+//    // Get selected or all text from a TextView.
+//    val selectedOrAllText = textView.getSelectedOrAllText()
 //
-//      // Example of calling the copyToClipboard method
-//    Tools.copyToClipboard(applicationContext, outputTextView.getText())
-//    Tools.copyToClipboard(this, "Text to copy")
+//// Copy text to the clipboard.
+//    context.copyToClipboard("Text to copy")
 //
-//      // Example of calling the pasteFromClipboard method
-//    Tools.pasteFromClipboard(this)
+//    // Paste text from the clipboard.
+//    val clipboardText = context.pasteFromClipboard()
 //
-//      // Example of calling the shareContent method
-//    val textToShare = "Text to share"
-//    val imageUri: Uri? = // Your image URI
-//        Tools.shareContent(this, textToShare, imageUri, "image/*")
+//// Share content.
+//    activity.shareContent(text = "Shared text")
 //
-//      // Example of calling the imageUriToPath method
-//    val imageUri: Uri = // Your image URI
-//    val imagePath = Tools.imageUriToPath(this, imageUri)
-
-
-//private val speech: SpeechRecognizer by lazy { SpeechRecognizer.createSpeechRecognizer(this) }
+//// Open the app settings page.
+//    context.openAppSettings()
 //
-//    if (SpeechRecognizer.isRecognitionAvailable(this)) {
-//        Toast.makeText(this, "Voice recognition available.", Toast.LENGTH_SHORT).show()
-//        val speechRecognizer = speech.setRecognitionListener(this)
+//// Convert speech to text.
+//    Tools.speakToText(context) { recognizedText ->
+//        // Handle recognized text here
+//    }
 //
-//        val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-//            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
-//            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, applicationContext.packageName)
-//            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-//            }
-//        }
+//// Tools.SpeechManager.initialize(this) { success ->
+//         if (success) Tools.SpeechManager.textToSpeak("Hello world")
+//      }
 //
-//        speechRecognizer.startListening(recognizerIntent)
-
+//// Shutdown TextToSpeech engine.
+//    Tools.SpeechManager.shutdown()
+//

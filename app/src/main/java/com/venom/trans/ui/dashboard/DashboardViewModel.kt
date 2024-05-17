@@ -1,19 +1,16 @@
-package com.venom.trans.ui.dashboard;
+package com.venom.trans.ui.dashboard
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 
-public class DashboardViewModel extends ViewModel {
+class DashboardViewModel : ViewModel() {
+    private val mText: MutableLiveData<String> = MutableLiveData()
 
-    private final MutableLiveData<String> mText;
-
-    public DashboardViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is dashboard fragment");
+    init {
+        mText.value = "This is dashboard fragment"
     }
 
-    public LiveData<String> getText() {
-        return mText;
-    }
+    val text: LiveData<String>
+        get() = mText
 }
